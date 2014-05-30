@@ -1,0 +1,19 @@
+input.mf-field-saved,
+select.mf-field-saved
+textarea.mf-field-saved{
+    
+}
+input.mf-field-fly,
+select.mf-field-fly,
+textarea.mf-field-fly{
+    color: #0088CC;
+    -moz-box-shadow: 0px 0px 5px #666666 !important;
+    -webkit-box-shadow: 0px 0px 5px #666666 !important;
+    box-shadow: 0px 0px 5px #666666 !important;
+}
+.mf-row-saved{
+
+}
+.mf-row-fly{
+
+}

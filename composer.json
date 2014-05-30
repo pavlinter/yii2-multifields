@@ -1,0 +1,24 @@
+{
+    "name": "pavlinter/multifields",
+    "description": "Multi dinamic fields for Yii2",
+    "keywords": ["yii2", "multifields", "multiinput", "dinamic"],
+    "type": "yii2-extension",
+    "support": {
+        "issues": "https://github.com/pavlinter/yii2-multifields/issues",
+        "source": "https://github.com/pavlinter/yii2-multifields"
+    },
+    "authors": [
+        {
+            "name": "Pavels Radajevs",
+            "email": "pavlinter@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "pavlinter\\multifields\\": ""
+        }
+    }
+}
