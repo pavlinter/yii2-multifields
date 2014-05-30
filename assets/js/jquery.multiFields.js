@@ -62,8 +62,6 @@
                     }
 
                     var data  = $(this).data('yiiActiveForm');
-                    log(data.attributes);
-                    log(errors);
                     $.each(data.attributes, function (i,attribute) {
                         if (errors[attribute.id]) {
                             $(attribute.error,attribute.container).text(errors[attribute.id][0]);
@@ -71,26 +69,22 @@
                                 .addClass(data.settings.errorCssClass);
                         }
                     });
-                }).on('updateRows.mf',settings.form,function(e,newIndex){
-                    var i;
-                    if(!$.isPlainObject(newIndex)){
-                        return false;
-                    }
+                }).on('updateRows.mf',settings.form,function(e,o){
+                    var i,field,inp,cont;
 
-                    for (i in newIndex) {
-                        if (i > 0) {
-                            continue;
-                        }
-                        var $fields;
-                        $fields = $('.' + settings.parentClass, this).find('[data-mf-uniq="' + i + '"]');
+                    for (i in o) {
 
-                        $fields.each(function(){
-                            var $this = $(this);
-                            $this.closest('.'+settings.parentClass).addClass(settings.parentSavedClass);
-                            $this.removeClass(settings.inputFlyClass).addClass(settings.inputSavedClass);
-                            $this.attr('name',$this.attr('name').replace('[' + i + ']','['+newIndex[i]+']'));
-                            $this.attr('data-mf-uniq',newIndex[i]);
-                        });
+                        field = o[i];
+
+                        inp = $('#'.field.id).attr('data-mf-uniq',field.value);
+                        cont = inp.closest('.' + settings.parentClass);
+
+                        inp.attr('data-mf-uniq',field.value)
+                            .removeClass(settings.inputFlyClass)
+                            .addClass(settings.inputSavedClass);
+                        cont.addClass(settings.parentSavedClass);
+
+                        //inp.attr('name',inp.attr('name').replace('[' + i + ']','['+newIndex[i]+']'));
                     }
                 }).on('scrollToError.mf',settings.form,function(e,options){
 

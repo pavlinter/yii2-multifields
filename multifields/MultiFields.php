@@ -42,7 +42,6 @@ class MultiFields extends \yii\base\Widget
      */
     public $index = 'index';
 
-    public $btn = '.cloneBtn';
     public $createOnlyTemlate = false;
     public $parentClass = '';
     public $parentClassPrefix = 'Row';
@@ -203,6 +202,7 @@ class MultiFields extends \yii\base\Widget
         $closeButtonClass = explode(' ',trim($this->closeButtonClass))[0];
 
         $clientOptions = ArrayHelper::merge(array(
+            'btn' => '.cloneBtn',
             'uniqId'=>(--$this->uniqId),
             'parentClass'=>$parentClass,
             'attributes'=>$this->attributes,
@@ -213,14 +213,14 @@ class MultiFields extends \yii\base\Widget
             'closeButtonClass'=>$closeButtonClass,
             'requiredRows' => 1,
         ),$this->clientOptions);
-
+        $btn = ArrayHelper::remove($clientOptions,'btn');
         $clientOptions = Json::encode($clientOptions);
 
         $view = $this->getView();
 
 
         MultiFieldsAsset::register($view);
-        $view->registerJs("jQuery('".$this->btn."').multiFields(".$clientOptions.");");
+        $view->registerJs("jQuery('" . $btn . "').multiFields(" . $clientOptions . ");");
     }
 
     public function field($model,$settings,$func)
