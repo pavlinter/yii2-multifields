@@ -27,6 +27,7 @@
         extData: {},
         deleteRouter: '',
         dataType: 'json',
+        requiredRows: 1,
         beforeSendDelete: function(parent,form){
             parent.hide();
         },
@@ -81,14 +82,14 @@
                             continue;
                         }
                         var $fields;
-                        $fields = $('.' + settings.parentClass, this).find('[mf-uniq="' + i + '"]');
+                        $fields = $('.' + settings.parentClass, this).find('[data-mf-uniq="' + i + '"]');
 
                         $fields.each(function(){
                             var $this = $(this);
                             $this.closest('.'+settings.parentClass).addClass(settings.parentSavedClass);
                             $this.removeClass(settings.inputFlyClass).addClass(settings.inputSavedClass);
                             $this.attr('name',$this.attr('name').replace('[' + i + ']','['+newIndex[i]+']'));
-                            $this.attr('mf-uniq',newIndex[i]);
+                            $this.attr('data-mf-uniq',newIndex[i]);
                         });
                     }
                 }).on('scrollToError.mf',settings.form,function(e,options){
@@ -133,7 +134,7 @@
                 $('.'+settings.parentClass+' .'+settings.closeButtonClass).on('click.mf',{settings:settings},deleteRow);
                 $('.'+settings.parentClass+' :input').each(function(){
                     var el = $(this);
-                    if(el.attr('mf-uniq')<0){
+                    if(el.attr('data-mf-uniq')<0){
                         el.addClass(settings.inputFlyClass);
                         el.closest('.'+settings.parentClass).addClass(settings.parentFlyClass);
                     }else{
@@ -201,12 +202,9 @@
 
                     saveFormSettings(settings.form,formSettings);
 
-
-
                     return false;
 
                 }); // end click action
-
             });
         },
 
@@ -230,16 +228,22 @@
             val = undefined;
 
         $inputs.each(function(){
-            val = $(this).attr('mf-uniq');
+            val = $(this).attr('data-mf-uniq');
             if(val >= 0){
                 uniq = val;
                 return false;
             }
             uniq = val;
         });
-        if($('.'+settings.parentClass).size()<2){
+
+        if(uniq === undefined){
             return false;
         }
+
+        if($('.'+settings.parentClass).size() <= settings.requiredRows){
+            return false;
+        }
+
         if(uniq < 0){
             $row.remove();
             deleteValidation(settings,$inputs);

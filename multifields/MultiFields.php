@@ -55,10 +55,9 @@ class MultiFields extends \yii\base\Widget
 
     public $closeButtonClass = 'mf-btn-close pull-right';
 
-    public $templateFields = ''; //{email},{password}
-    public $options = [];
-    public $errorOptions = ['class' => 'help-block'];
-    public $cssFiles;
+    public $templateFields  = ''; //{email},{password}
+    public $clientOptions         = [];
+    public $errorOptions    = ['class' => 'help-block'];
 
 
     private $uniqId = 0;
@@ -92,7 +91,7 @@ class MultiFields extends \yii\base\Widget
         }
         $this->models = $Models;
 
-        if($this->template===null){
+        if($this->template === null){
             $this->template = function($parentClass,$closeButtonClass,$templateFields){
                 $closeBtn = Html::tag('a','&times;',['class'=>$closeButtonClass,'href'=>'javascript:void(0)']);
                 return Html::tag('div',$closeBtn.$templateFields,['class'=>$parentClass]);
@@ -101,66 +100,54 @@ class MultiFields extends \yii\base\Widget
 
         $this->parentClass = $this->parentClass?$modelName.$this->parentClassPrefix.' '.$this->parentClass:$modelName.$this->parentClassPrefix;
 
-        $isEmpty = $this->templateFields?false:true;
+        $isEmpty = $this->templateFields ? false : true ;
 
-        foreach ($this->attributes as $i=>$options) {
-            if(!is_array($options)){
-                $options = ['attribute'=>$options];
+        foreach ($this->attributes as $i => $settings) {
+            if(!is_array($settings)){
+                $settings = ['attribute' => $settings];
             }
-            $attribute = ArrayHelper::merge([
-                'attribute'=>'',
-                'htmlOptions'=>[],
-                'field'=>null,
-            ],$options);
+            $settings = ArrayHelper::merge([
+                'attribute' => '',
+                'options'=> [],
+                'field' => null,
+            ],$settings);
             if($isEmpty) {
-                $this->templateFields .= '{'.$attribute['attribute'].'}';
+                $this->templateFields .= '{'.$settings['attribute'].'}';
             }
-            $this->attributes[$i] = $attribute;
+            $this->attributes[$i] = $settings;
         }
 
 
-        $defOptions = [
+        $defClientOptions = [
             'confirmMessage' => 'Are you sure you want to delete this item?',
-            'deleteRouter' => Url::toRoute([Yii::$app->controller->getUniqueId().'/delete']),
+            'deleteRouter' => Url::to([Yii::$app->controller->getUniqueId().'/delete']),
             'extData' => [],
             'deleteCallback' => 'function(data,$row,$form){
-                   if(data.r){
-                        $row.remove();
-                   }else{
-                        $row.show();
-                   }
+               if(data.r){
+                    $row.remove();
+               }else{
+                    $row.show();
+               }
             }'
         ];
-        $this->options = ArrayHelper::merge($defOptions,$this->options);
-
-        if (!($this->options['deleteCallback'] instanceof JsExpression)) {
-            $this->options['deleteCallback'] = new JsExpression($this->options['deleteCallback']);
+        $this->clientOptions = ArrayHelper::merge($defClientOptions,$this->clientOptions);
+        if (!($this->clientOptions['deleteCallback'] instanceof JsExpression)) {
+            $this->clientOptions['deleteCallback'] = new JsExpression($this->clientOptions['deleteCallback']);
         }
-
-
     }
     public function run()
     {
-
-
         $attributes         = $this->attributes;
-        $view = $this->getView();
         $this->attributes   = [];
-
         $this->jsTemplate   = $this->getTemplate();
         $html = '';
         $createJsTemplate   = true;
 
-
-
         foreach($this->models as $id=>$model)
         {
-            $modelName = $model->formName();
             $temlate   = $this->getTemplate();
-
             foreach($attributes as $i=>$settings)
             {
-
                 if(!$model->hasAttribute($settings['attribute'])){
                     continue;
                 }
@@ -178,8 +165,8 @@ class MultiFields extends \yii\base\Widget
                 if(is_callable($settings['field'])){
                     $func = $settings['field'];
                 }else{
-                    $func = function($ActiveForm,$htmlOptions){
-                        return $ActiveForm->textInput($htmlOptions);
+                    $func = function($activeField,$options,$parentClass,$closeButtonClass){
+                        return $activeField->textInput($options);
                     };
                 }
 
@@ -191,8 +178,8 @@ class MultiFields extends \yii\base\Widget
                     $temlate = str_replace('{'.$attribute.'}',$field,$temlate);
                 }
                 if($createJsTemplate) {
-                    $ActiveField = $this->jsTemplateField($model,$settings,$func);
-                    $this->jsTemplate = str_replace('{'.$attribute.'}',$ActiveField,$this->jsTemplate);
+                    $activeField = $this->jsTemplateField($model,$settings,$func);
+                    $this->jsTemplate = str_replace('{'.$attribute.'}',$activeField,$this->jsTemplate);
                 }
                 if(isset($this->form->attributes[$nameIndex])) {
                     $this->attributes[$i] = $this->form->attributes[$nameIndex];
@@ -212,13 +199,10 @@ class MultiFields extends \yii\base\Widget
      */
     public function registerAssets()
     {
-        $parentClass = explode(' ',trim($this->parentClass));
-        $parentClass = trim($parentClass[0]);
+        $parentClass = explode(' ',trim($this->parentClass))[0];
+        $closeButtonClass = explode(' ',trim($this->closeButtonClass))[0];
 
-        $closeButtonClass = explode(' ',trim($this->closeButtonClass));
-        $closeButtonClass = trim($closeButtonClass[0]);
-
-        $options = ArrayHelper::merge(array(
+        $clientOptions = ArrayHelper::merge(array(
             'uniqId'=>(--$this->uniqId),
             'parentClass'=>$parentClass,
             'attributes'=>$this->attributes,
@@ -227,24 +211,16 @@ class MultiFields extends \yii\base\Widget
             'template'=>$this->jsTemplate,
             'form'=>'#'.$this->form->id,
             'closeButtonClass'=>$closeButtonClass,
-        ),$this->options);
+            'requiredRows' => 1,
+        ),$this->clientOptions);
 
-        $options = Json::encode($options);
+        $clientOptions = Json::encode($clientOptions);
 
         $view = $this->getView();
 
-        if($this->cssFiles) {
-            foreach ($this->cssFiles as $cssFile) {
-                $view->registerCssFile($cssFile,[MultiFieldsAsset::className()]);
-            }
-            MultiFieldsAsset::register($view)->css = [];
-        } else {
-            MultiFieldsAsset::register($view);
-        }
 
-
-
-        $view->registerJs("jQuery('".$this->btn."').multiFields(".$options.");");
+        MultiFieldsAsset::register($view);
+        $view->registerJs("jQuery('".$this->btn."').multiFields(".$clientOptions.");");
     }
 
     public function field($model,$settings,$func)
@@ -252,15 +228,15 @@ class MultiFields extends \yii\base\Widget
         if($this->createOnlyTemlate){
             return null;
         }
-        $settings['htmlOptions']['mf-uniq'] = $settings['uniqId'];
-        $ActiveForm = $this->form->field($model,$settings['attribute']);
-        return $func($ActiveForm,$settings['htmlOptions']);
+        $settings['options']['data-mf-uniq'] = $settings['uniqId'];
+        $activeField = $this->form->field($model,$settings['attribute']);
+        return $func($activeField,$settings['options'],$this->parentClass,$this->closeButtonClass);
     }
     public function jsTemplateField($model,$settings,$func)
     {
-        $settings['htmlOptions']['mf-uniq'] = $this->index;
-        $ActiveForm = $this->form->field($model,$settings['attributeIndex']);
-        return $func($ActiveForm,$settings['htmlOptions']);
+        $settings['options']['data-mf-uniq'] = $this->index;
+        $activeField = $this->form->field($model,$settings['attributeIndex']);
+        return $func($activeField,$settings['options'],$this->parentClass,$this->closeButtonClass);
     }
     public function getTemplate()
     {
