@@ -19,7 +19,7 @@
     },
     "autoload": {
         "psr-4": {
-            "pavlinter\\multifields\\": ""
+            "pavlinter\\yii2-multifields\\": ""
         }
     }
 }
