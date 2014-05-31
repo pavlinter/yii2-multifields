@@ -220,7 +220,7 @@ class MultiFields extends \yii\base\Widget
 
 
         MultiFieldsAsset::register($view);
-        $view->registerJs("jQuery('" . $btn . "').multiFields(" . $clientOptions . ");");
+        $view->registerJs("jQuery('" . $btn . "').multiFields(" . $clientOptions . ");",$view::POS_LOAD);
     }
     public function field($model,$settings,$func)
     {
