@@ -81,15 +81,20 @@ class ModelHelper
         }
         return $result;
     }
-    public static function ajaxField($model,$attribute,$id = null)
+    public static function ajaxChangeField(&$arr,$model,$attribute,$key,$id = null)
     {
         if ($id === null) {
             $id = $model->id;
         }
-        return [
-            'id' => Html::getInputId($model,$attribute),
-            'value' => $id,
+        if ($key == $id) {
+            return false;
+        }
+        $arr[] = [
+            'id' => Html::getInputId($model,'['.$key.']'.$attribute),
+            'uniq' => $id,
+            'newName' => Html::getInputName($model,'['.$id.']'.$attribute),
         ];
+        return true;
     }
 
 }

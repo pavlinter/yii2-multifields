@@ -53,77 +53,84 @@
                 var settings        = $.extend({}, defaults, options || {}),
                     uniqId          = settings.uniqId;
                 settings.limit      = parseInt(settings.limit);
+                var $form = $(settings.form),
+                    data = $form.data('mf');
 
-                $(document).on('updateErrors.mf',settings.form,function(e,errors){
+                if(!data){
+                    $(document).on('updateErrors.mf',settings.form,function(e,errors){
 
-                    if (!errors || errors.length == 0) {
-                        log('Error empty!');
-                        return false;
-                    }
-
-                    var data  = $(this).data('yiiActiveForm');
-                    $.each(data.attributes, function (i,attribute) {
-                        if (errors[attribute.id]) {
-                            $(attribute.error,attribute.container).text(errors[attribute.id][0]);
-                            $(attribute.container).removeClass(data.settings.validatingCssClass + ' ' + data.settings.successCssClass)
-                                .addClass(data.settings.errorCssClass);
+                        if (!errors || errors.length == 0) {
+                            log('Error empty!');
+                            return false;
                         }
+                        var data  = $(this).yiiActiveForm('data');
+                        $.each(data.attributes, function (i,attribute) {
+                            if (errors[attribute.id]) {
+                                $(attribute.error,attribute.container).text(errors[attribute.id][0]);
+                                $(attribute.container).removeClass(data.settings.validatingCssClass + ' ' + data.settings.successCssClass)
+                                    .addClass(data.settings.errorCssClass);
+                            }
+                        });
+                    }).on('updateRows.mf',settings.form,function(e,o){
+                        var i,field,inp,cont;
+                        for (i in o) {
+
+                            field = o[i];
+                            inp = $('#' + field.id);
+                            cont = inp.closest('.' + settings.parentClass);
+
+                            inp.attr({
+                                'data-mf-uniq':field.uniq,
+                                'name':field.newName
+                            }).removeClass(settings.inputFlyClass).addClass(settings.inputSavedClass);
+                            cont.addClass(settings.parentSavedClass);
+                        }
+                    }).on('scrollToError.mf',settings.form,function(e,options){
+
+                        var $this   = $(this);
+                        var settings = $.extend({
+                            options: {},
+                            body: 'html ,body',
+                            minusHeight: $(window).height()/3
+                        },settings || {});
+                        options = $.extend({
+                            duration: 1000
+                        },settings.options);
+
+                        var data    = $this.yiiActiveForm('data');
+                        var top     = $this.find('.'+data.settings.errorCssClass+':first').offset().top - settings.minusHeight;
+
+                        $(settings.body).animate({
+                            scrollTop: top
+                        },options);
+
+                    }).on('scrollToTop.mf',settings.form,function(e,settings){
+
+                        settings = $.extend({
+                            options: {},
+                            body: 'html ,body',
+                            minusHeight: $(window).height()/3,
+                            trigger: this
+                        },settings || {});
+                        var options = $.extend({
+                            duration: 1000
+                        },settings.options);
+
+                        var top     = $(settings.trigger).offset().top - settings.minusHeight;
+
+                        $(settings.body).animate({
+                            scrollTop: top
+                        },options);
+
                     });
-                }).on('updateRows.mf',settings.form,function(e,o){
-                    var i,field,inp,cont;
+                }
 
-                    for (i in o) {
-
-                        field = o[i];
-
-                        inp = $('#'.field.id).attr('data-mf-uniq',field.value);
-                        cont = inp.closest('.' + settings.parentClass);
-
-                        inp.attr('data-mf-uniq',field.value)
-                            .removeClass(settings.inputFlyClass)
-                            .addClass(settings.inputSavedClass);
-                        cont.addClass(settings.parentSavedClass);
-
-                        //inp.attr('name',inp.attr('name').replace('[' + i + ']','['+newIndex[i]+']'));
-                    }
-                }).on('scrollToError.mf',settings.form,function(e,options){
-
-                    var $this   = $(this);
-                    var settings = $.extend({
-                        options: {},
-                        body: 'html ,body',
-                        minusHeight: $(window).height()/3
-                    },settings || {});
-                    options = $.extend({
-                        duration: 1000
-                    },settings.options);
-
-                    var data    = $this.data('yiiActiveForm');
-                    var top     = $this.find('.'+data.settings.errorCssClass+':first').offset().top - settings.minusHeight;
-
-                    $(settings.body).animate({
-                        scrollTop: top
-                    },options);
-
-                }).on('scrollToTop.mf',settings.form,function(e,settings){
-
-                    settings = $.extend({
-                        options: {},
-                        body: 'html ,body',
-                        minusHeight: $(window).height()/3,
-                        trigger: this
-                    },settings || {});
-                    var options = $.extend({
-                        duration: 1000
-                    },settings.options);
-
-                    var top     = $(settings.trigger).offset().top - settings.minusHeight;
-
-                    $(settings.body).animate({
-                        scrollTop: top
-                    },options);
-
-                });
+                if (!data) {
+                    $form.data('mf', {
+                        target : $(this),
+                        settings : settings
+                    });
+                }
 
                 $('.'+settings.parentClass+' .'+settings.closeButtonClass).on('click.mf',{settings:settings},deleteRow);
                 $('.'+settings.parentClass+' :input').each(function(){
@@ -199,6 +206,8 @@
                     return false;
 
                 }); // end click action
+
+
             });
         },
 
@@ -207,7 +216,6 @@
                 $(this).unbind('.mf');
             });
         }
-
     };
     /**
      * Performs deleting row
@@ -229,7 +237,7 @@
             }
             uniq = val;
         });
-
+        console.log(uniq);
         if(uniq === undefined){
             return false;
         }
@@ -326,3 +334,4 @@
 
 
 })(jQuery);
+
