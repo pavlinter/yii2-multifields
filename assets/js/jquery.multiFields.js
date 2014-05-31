@@ -192,7 +192,6 @@
                     }else{
                         $('.'+settings.parentClass+':last').after(clone);
                     }
-                    settings.afterAppend(clone);
 
                     //clear input
                     $(':input',clone).not(':button, :submit, :reset, :hidden')
@@ -201,8 +200,8 @@
                         .removeAttr('checked')
                         .removeAttr('selected');
 
+                    settings.afterAppend(clone);
                     saveFormSettings(settings.form,formSettings);
-
                     return false;
 
                 }); // end click action
