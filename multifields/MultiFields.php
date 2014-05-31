@@ -222,7 +222,6 @@ class MultiFields extends \yii\base\Widget
         MultiFieldsAsset::register($view);
         $view->registerJs("jQuery('" . $btn . "').multiFields(" . $clientOptions . ");");
     }
-
     public function field($model,$settings,$func)
     {
         if($this->createOnlyTemlate){
