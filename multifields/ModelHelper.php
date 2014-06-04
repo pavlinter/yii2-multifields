@@ -17,10 +17,11 @@ class ModelHelper
         $model          = reset($models);
         $className      = $model->className();
         $postName       = $model->formName();
-
+        $oldScenario    = $model->scenario;
         $cacheModels    = $models;
         $models         = [];
         $posts = Yii::$app->getRequest()->post($postName,[]);
+        
         foreach ($posts as $id => $post) {
             if($id > 0) {
                 if ($existModels && isset($cacheModels[$id])) {
@@ -36,6 +37,8 @@ class ModelHelper
             }
             if ($scenario !== null) {
                 $model->scenario = $scenario;
+            } else {
+                $model->scenario = $oldScenario;
             }
             if($model->load($post, '')) {
                 $models[$id] = $model;
