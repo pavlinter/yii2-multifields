@@ -14,12 +14,12 @@ class ModelHelper
             return $res;
         }
 
-        $model          = reset($models);
-        $className      = $model->className();
-        $postName       = $model->formName();
-        $oldScenario    = $model->scenario;
-        $cacheModels    = $models;
-        $models         = [];
+        $model              = reset($models);
+        $className          = $model->className();
+        $postName           = $model->formName();
+        $defaultScenario    = $model->scenario;
+        $cacheModels        = $models;
+        $models             = [];
         $posts = Yii::$app->getRequest()->post($postName,[]);
         
         foreach ($posts as $id => $post) {
@@ -38,7 +38,7 @@ class ModelHelper
             if ($scenario !== null) {
                 $model->scenario = $scenario;
             } else {
-                $model->scenario = $oldScenario;
+                $model->scenario = $defaultScenario;
             }
             if($model->load($post, '')) {
                 $models[$id] = $model;
