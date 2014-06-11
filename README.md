@@ -24,6 +24,10 @@ Example
 ------------
 Controller
 ```
+use pavlinter\multifields\ModelHelper;
+
+...
+
 public function actionProduct()
 {
 
@@ -76,6 +80,10 @@ public function actionDelete()
 
 View
 ```
+use pavlinter\multifields\MultiFields;
+
+...
+
 <?php $form = ActiveForm::begin([
     'id' => 'product-form',
     'beforeSubmit' => 'function(form) {
