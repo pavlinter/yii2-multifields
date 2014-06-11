@@ -128,8 +128,7 @@ use pavlinter\multifields\MultiFields;
         'template' => function($parentClass,$closeButtonClass,$templateFields){ //default
             $closeBtn = Html::tag('a','&times;',['class'=>$closeButtonClass,'href'=>'javascript:void(0)']);
             return Html::tag('div',$closeBtn.$templateFields,['class'=>$parentClass]);
-        },
-        'templateFields' => null, //{attributeName}{attributeName}...
+        }
     ]);?>
 
     <?= Button::widget([

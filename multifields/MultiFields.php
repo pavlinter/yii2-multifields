@@ -47,12 +47,12 @@ class MultiFields extends \yii\base\Widget
      */
     public $template = null;
     public $closeButtonClass = 'mf-btn-close pull-right';
-    public $templateFields  = null; //{attributeName}{attributeName}...
     public $clientOptions   = [];
 
     private $parentClass = null;
     private $uniqId = 0;
     private $jsTemplate;
+    private $templateFields  = '';
 
     public function init()
     {
@@ -86,8 +86,6 @@ class MultiFields extends \yii\base\Widget
 
         $this->parentClass = $modelName . $this->parentClassPrefix;
 
-        $isEmpty = $this->templateFields ? false : true ;
-
         foreach ($this->attributes as $i => $settings) {
             if(!is_array($settings)){
                 $settings = ['attribute' => $settings];
@@ -97,9 +95,7 @@ class MultiFields extends \yii\base\Widget
                 'options'=> [],
                 'field' => null,
             ],$settings);
-            if($isEmpty) {
-                $this->templateFields .= '{'.$settings['attribute'].'}';
-            }
+            $this->templateFields .= '{'.$settings['attribute'].'}';
             $this->attributes[$i] = $settings;
         }
 
