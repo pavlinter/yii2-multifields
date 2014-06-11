@@ -110,6 +110,7 @@ use pavlinter\multifields\MultiFields;
         'attributes' => [
             [
                 'attribute' => 'name',
+                'options'=> [],
                 'field' => function ($activeField,$options,$parentClass,$closeButtonClass) {
                         return $activeField->textArea($options);
                 },
