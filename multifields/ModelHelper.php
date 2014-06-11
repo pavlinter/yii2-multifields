@@ -1,10 +1,21 @@
 <?php
 
 namespace pavlinter\multifields;
+/**
+ * @copyright Copyright &copy; Pavels Radajevs, 2014
+ * @package yii2-multifields
+ * @version 1.0.0
+ */
 
 use Yii;
 use yii\helpers\Html;
 
+/**
+ * Helpers for MultiFields Widget
+ *
+ * @author Pavels Radajevs <pavlinter@gmail.com>
+ * @since 1.0
+ */
 class ModelHelper
 {
     public static function load(&$models,$scenario = null,$existModels = true)

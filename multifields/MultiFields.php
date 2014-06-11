@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2013
- * @package yii2-widgets
+ * @copyright Copyright &copy; Pavels Radajevs, 2014
+ * @package yii2-multifields
  * @version 1.0.0
  */
 
@@ -16,18 +16,10 @@ use yii\web\JsExpression;
 use yii\helpers\Json;
 use yii\helpers\Url;
 
-
-
 /**
- * The TimePicker widget  allows you to easily select a time for a text input using
- * your mouse or keyboards arrow keys. Thus widget is a wrapper enhancement over the
- * TimePicker JQuery plugin by rendom forked from the plugin by jdewit. Additional
- * enhancements have been done to this input widget for compatibility with Bootstrap 3.
  *
- * @author Kartik Visweswaran <kartikv2@gmail.com>
+ * @author Pavels Radajevs <pavlinter@gmail.com>
  * @since 1.0
- * @see https://github.com/rendom/bootstrap-3-timepicker
- * @see https://github.com/jdewit/bootstrap-timepicker
  */
 class MultiFields extends \yii\base\Widget
 {
@@ -58,7 +50,7 @@ class MultiFields extends \yii\base\Widget
     {
         parent::init();
 
-        if($this->models===[]){
+        if ($this->models===[]) {
             throw new InvalidConfigException('Empty model array');
         }
 
@@ -78,9 +70,9 @@ class MultiFields extends \yii\base\Widget
         $this->models = $Models;
 
         if($this->template === null){
-            $this->template = function($parentClass,$closeButtonClass,$templateFields){
-                $closeBtn = Html::tag('a','&times;',['class'=>$closeButtonClass,'href'=>'javascript:void(0)']);
-                return Html::tag('div',$closeBtn.$templateFields,['class'=>$parentClass]);
+            $this->template = function($parentClass,$closeButtonClass,$templateFields) {
+                $closeBtn = Html::tag('a', '&times;',['class' => $closeButtonClass,'href' => 'javascript:void(0)']);
+                return Html::tag('div', $closeBtn.$templateFields, ['class' => $parentClass]);
             };
         }
 
@@ -100,7 +92,7 @@ class MultiFields extends \yii\base\Widget
         }
 
         $defClientOptions = [
-            'confirmMessage' => Yii::t('yii' , 'Are you sure you want to delete this item?'),
+            'confirmMessage' => Yii::t('yii', 'Are you sure you want to delete this item?'),
             'deleteRouter' => Url::to([Yii::$app->controller->getUniqueId().'/delete']),
         ];
         $this->clientOptions = ArrayHelper::merge($defClientOptions,$this->clientOptions);
@@ -113,12 +105,12 @@ class MultiFields extends \yii\base\Widget
         $html = '';
         $createJsTemplate   = true;
 
-        foreach($this->models as $id=>$model)
+        foreach($this->models as $id => $model)
         {
             $temlate   = $this->getTemplate();
-            foreach($attributes as $i=>$settings)
+            foreach($attributes as $i => $settings)
             {
-                if(!$model->hasAttribute($settings['attribute'])){
+                if (!$model->hasAttribute($settings['attribute'])) {
                     continue;
                 }
                 $attribute      = $settings['attribute'];
@@ -132,28 +124,26 @@ class MultiFields extends \yii\base\Widget
                 $settings['idTpl']           = Html::getInputId($model,$nameIndex);
 
 
-                if(is_callable($settings['field'])){
-                    $func = $settings['field'];
-                }else{
-                    $func = function($activeField,$options,$parentClass,$closeButtonClass){
+                if (!is_callable($settings['field'])) {
+                    $settings['field'] = function($activeField,$options,$parentClass,$closeButtonClass){
                         return $activeField->textInput($options);
                     };
                 }
 
-                $field = $this->field($model,$settings,$func);
+                $field = $this->field($model,$settings);
                 $temlate = str_replace('{'.$attribute.'}',$field,$temlate);
 
-                if($createJsTemplate) {
-                    $activeField = $this->jsTemplateField($model,$settings,$func);
+                if ($createJsTemplate) {
+                    $activeField = $this->jsTemplateField($model,$settings);
                     $this->jsTemplate = str_replace('{'.$attribute.'}',$activeField,$this->jsTemplate);
                 }
-                if(isset($this->form->attributes[$nameIndex])) {
+                if (isset($this->form->attributes[$nameIndex])) {
                     $this->attributes[$i] = $this->form->attributes[$nameIndex];
                     unset($this->form->attributes[$nameIndex]);
                 }
             }
             $html .= $temlate;
-            if($createJsTemplate){
+            if ($createJsTemplate) {
                 $createJsTemplate = false;
             }
         }
@@ -169,14 +159,14 @@ class MultiFields extends \yii\base\Widget
 
         $clientOptions = ArrayHelper::merge(array(
             'btn' => '.cloneBtn',
-            'uniqId'=>(--$this->uniqId),
-            'parentClass'=>$this->parentClass,
-            'attributes'=>$this->attributes,
-            'appendTo'=>'',
-            'index'=>$this->index,
-            'template'=>$this->jsTemplate,
-            'form'=>'#'.$this->form->id,
-            'closeButtonClass'=>$closeButtonClass,
+            'uniqId' => (--$this->uniqId),
+            'parentClass' => $this->parentClass,
+            'attributes' => $this->attributes,
+            'appendTo' => '',
+            'index' => $this->index,
+            'template' => $this->jsTemplate,
+            'form' => '#'.$this->form->id,
+            'closeButtonClass' => $closeButtonClass,
             'requiredRows' => 1,
         ),$this->clientOptions);
         $btn = ArrayHelper::remove($clientOptions,'btn');
@@ -187,23 +177,22 @@ class MultiFields extends \yii\base\Widget
         MultiFieldsAsset::register($view);
         $view->registerJs("jQuery('" . $btn . "').multiFields(" . $clientOptions . ");",$view::POS_LOAD);
     }
-    public function field($model,$settings,$func)
+    public function field($model,$settings)
     {
         $settings['options']['data-mf-uniq'] = $settings['uniqId'];
-        $activeField = $this->form->field($model,$settings['attribute']);
-        return $func($activeField,$settings['options'],$this->parentClass,$this->closeButtonClass);
+        $activeField = $this->form->field($model, $settings['attribute']);
+        return call_user_func($settings['field'], $activeField, $settings['options'], $this->parentClass, $this->closeButtonClass);
     }
-    public function jsTemplateField($model,$settings,$func)
+    public function jsTemplateField($model,$settings)
     {
         $settings['options']['data-mf-uniq'] = $this->index;
-        $activeField = $this->form->field($model,$settings['attributeIndex']);
-        return $func($activeField,$settings['options'],$this->parentClass,$this->closeButtonClass);
+        $activeField = $this->form->field($model, $settings['attributeIndex']);
+        return call_user_func($settings['field'], $activeField, $settings['options'], $this->parentClass, $this->closeButtonClass);
     }
     public function getTemplate()
     {
-        if(is_callable($this->template)){
-            $func = $this->template;
-            return $func($this->parentClass,$this->closeButtonClass,$this->templateFields);
+        if (is_callable($this->template)) {
+            return call_user_func($this->template, $this->parentClass, $this->closeButtonClass, $this->templateFields);
         }
         throw new InvalidConfigException('Template must be function!');
     }
