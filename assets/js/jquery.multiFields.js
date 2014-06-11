@@ -28,10 +28,16 @@
         deleteRouter: '',
         dataType: 'json',
         requiredRows: 1,
-        beforeSendDelete: function(parent,form){
-            parent.hide();
+        beforeSendDelete: function($row,$form){
+            $row.hide();
         },
-        deleteCallback: function(data,parent,form){},
+        deleteCallback: function(data,$row,$form){
+            if(data.r){
+                $row.remove();
+            }else{
+                $row.show();
+            }
+        },
         completeDelete: function(parent,form){},
         confirmMessage: '',
         confirmCancelCallback: function(parent,form){},
@@ -54,6 +60,7 @@
                     uniqId          = settings.uniqId;
                 settings.limit      = parseInt(settings.limit);
                 var $form = $(settings.form),
+                    $btn  = $(this),
                     data = $form.data('mf');
 
                 if(!data){
@@ -145,7 +152,7 @@
                 });
 
                 // set click action
-                $(this).on('click.mf',function(e,ID){
+                $btn.on('click.mf',function(e,ID){
                     ID = ID || uniqId--;
 
 
@@ -205,7 +212,6 @@
                     return false;
 
                 }); // end click action
-
 
             });
         },

@@ -31,37 +31,28 @@ use yii\helpers\Url;
  */
 class MultiFields extends \yii\base\Widget
 {
-
     public $form;
     public $models;
     public $attributes = [];
-    public $appendTo = '';
     /**
      * Index for js template.
      * Js file index will be replaced with unique key
      */
     public $index = 'index';
-
-    public $createOnlyTemlate = false;
-    public $parentClass = '';
-    public $parentClassPrefix = 'Row';
+    public $parentClassPrefix = '-mf-row';
     /**
-     * example: funsction($parentClass){
+     * example: function($parentClass){
      *      '<div class="'.$parentClass.'">{modelName_attribute},{modelName_attribute}</div>';
      * }
      */
     public $template = null;
-
     public $closeButtonClass = 'mf-btn-close pull-right';
+    public $templateFields  = null; //{attributeName}{attributeName}...
+    public $clientOptions   = [];
 
-    public $templateFields  = ''; //{email},{password}
-    public $clientOptions         = [];
-    public $errorOptions    = ['class' => 'help-block'];
-
-
+    private $parentClass = null;
     private $uniqId = 0;
     private $jsTemplate;
-
 
     public function init()
     {
@@ -73,11 +64,7 @@ class MultiFields extends \yii\base\Widget
 
         $Models = [];
 
-
-
         $modelName = reset($this->models);
-
-
 
         $modelName = $modelName->formName();
         foreach($this->models as $id =>$model) {
@@ -97,7 +84,7 @@ class MultiFields extends \yii\base\Widget
             };
         }
 
-        $this->parentClass = $this->parentClass?$modelName.$this->parentClassPrefix.' '.$this->parentClass:$modelName.$this->parentClassPrefix;
+        $this->parentClass = $modelName . $this->parentClassPrefix;
 
         $isEmpty = $this->templateFields ? false : true ;
 
@@ -116,23 +103,11 @@ class MultiFields extends \yii\base\Widget
             $this->attributes[$i] = $settings;
         }
 
-
         $defClientOptions = [
-            'confirmMessage' => 'Are you sure you want to delete this item?',
+            'confirmMessage' => Yii::t('yii' , 'Are you sure you want to delete this item?'),
             'deleteRouter' => Url::to([Yii::$app->controller->getUniqueId().'/delete']),
-            'extData' => [],
-            'deleteCallback' => 'function(data,$row,$form){
-               if(data.r){
-                    $row.remove();
-               }else{
-                    $row.show();
-               }
-            }'
         ];
         $this->clientOptions = ArrayHelper::merge($defClientOptions,$this->clientOptions);
-        if (!($this->clientOptions['deleteCallback'] instanceof JsExpression)) {
-            $this->clientOptions['deleteCallback'] = new JsExpression($this->clientOptions['deleteCallback']);
-        }
     }
     public function run()
     {
@@ -169,13 +144,9 @@ class MultiFields extends \yii\base\Widget
                     };
                 }
 
-
                 $field = $this->field($model,$settings,$func);
-                if($field==null) {
-                    $temlate = '';
-                } else {
-                    $temlate = str_replace('{'.$attribute.'}',$field,$temlate);
-                }
+                $temlate = str_replace('{'.$attribute.'}',$field,$temlate);
+
                 if($createJsTemplate) {
                     $activeField = $this->jsTemplateField($model,$settings,$func);
                     $this->jsTemplate = str_replace('{'.$attribute.'}',$activeField,$this->jsTemplate);
@@ -198,15 +169,14 @@ class MultiFields extends \yii\base\Widget
      */
     public function registerAssets()
     {
-        $parentClass = explode(' ',trim($this->parentClass))[0];
         $closeButtonClass = explode(' ',trim($this->closeButtonClass))[0];
 
         $clientOptions = ArrayHelper::merge(array(
             'btn' => '.cloneBtn',
             'uniqId'=>(--$this->uniqId),
-            'parentClass'=>$parentClass,
+            'parentClass'=>$this->parentClass,
             'attributes'=>$this->attributes,
-            'appendTo'=>$this->appendTo,
+            'appendTo'=>'',
             'index'=>$this->index,
             'template'=>$this->jsTemplate,
             'form'=>'#'.$this->form->id,
@@ -218,15 +188,11 @@ class MultiFields extends \yii\base\Widget
 
         $view = $this->getView();
 
-
         MultiFieldsAsset::register($view);
         $view->registerJs("jQuery('" . $btn . "').multiFields(" . $clientOptions . ");",$view::POS_LOAD);
     }
     public function field($model,$settings,$func)
     {
-        if($this->createOnlyTemlate){
-            return null;
-        }
         $settings['options']['data-mf-uniq'] = $settings['uniqId'];
         $activeField = $this->form->field($model,$settings['attribute']);
         return $func($activeField,$settings['options'],$this->parentClass,$this->closeButtonClass);
