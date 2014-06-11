@@ -44,13 +44,13 @@ class MultiFields extends \yii\base\Widget
     private $parentClass = null;
     private $uniqId = 0;
     private $jsTemplate;
-    private $templateFields  = '';
+    private $templateFields = '';
 
     public function init()
     {
         parent::init();
 
-        if ($this->models===[]) {
+        if ($this->models === []) {
             throw new InvalidConfigException('Empty model array');
         }
 
@@ -59,8 +59,8 @@ class MultiFields extends \yii\base\Widget
         $modelName = reset($this->models);
 
         $modelName = $modelName->formName();
-        foreach($this->models as $id =>$model) {
-            if($model->isNewRecord) {
+        foreach($this->models as $id => $model) {
+            if ($model->isNewRecord) {
                 $uniqId = --$this->uniqId;
             } else {
                 $uniqId = $model->id;
@@ -69,7 +69,7 @@ class MultiFields extends \yii\base\Widget
         }
         $this->models = $Models;
 
-        if($this->template === null){
+        if ($this->template === null) {
             $this->template = function($parentClass,$closeButtonClass,$templateFields) {
                 $closeBtn = Html::tag('a', '&times;',['class' => $closeButtonClass,'href' => 'javascript:void(0)']);
                 return Html::tag('div', $closeBtn.$templateFields, ['class' => $parentClass]);
@@ -79,7 +79,7 @@ class MultiFields extends \yii\base\Widget
         $this->parentClass = $modelName . $this->parentClassPrefix;
 
         foreach ($this->attributes as $i => $settings) {
-            if(!is_array($settings)){
+            if (!is_array($settings)) {
                 $settings = ['attribute' => $settings];
             }
             $settings = ArrayHelper::merge([
@@ -105,7 +105,7 @@ class MultiFields extends \yii\base\Widget
         $html = '';
         $createJsTemplate   = true;
 
-        foreach($this->models as $id => $model)
+        foreach ($this->models as $id => $model)
         {
             $temlate   = $this->getTemplate();
             foreach($attributes as $i => $settings)
@@ -155,7 +155,7 @@ class MultiFields extends \yii\base\Widget
      */
     public function registerAssets()
     {
-        $closeButtonClass = explode(' ',trim($this->closeButtonClass))[0];
+        $closeButtonClass = explode(' ', trim($this->closeButtonClass))[0];
 
         $clientOptions = ArrayHelper::merge(array(
             'btn' => '.cloneBtn',
