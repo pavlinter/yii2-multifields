@@ -9,13 +9,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist pavlinter/yii2-multifields "dev-master"
+php composer.phar require --prefer-dist pavlinter/yii2-multifields "master"
 ```
 
 or add
 
 ```
-"pavlinter/yii2-multifields": "dev-master"
+"pavlinter/yii2-multifields": "master"
 ```
 
 to the require section of your `composer.json` file.
