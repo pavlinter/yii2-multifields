@@ -1,6 +1,6 @@
 {
     "name": "pavlinter/yii2-multifields",
-    "description": "Multi dinamic fields for Yii2",
+    "description": "Yii2: Multi dinamic fields",
     "keywords": ["yii2", "multifields", "multiinput", "dinamic","multi"],
     "type": "yii2-extension",
     "license": "BSD 3-Clause",
