@@ -15,7 +15,7 @@ namespace pavlinter\multifields;
  */
 class MultiFieldsAsset extends \yii\web\AssetBundle
 {
-    public $sourcePath =  '@vendor/pavlinter/yii2-multiFields/assets';
+    public $sourcePath =  '@vendor/pavlinter/yii2-multifields/assets';
     public $css = [
         'css/style.css',
     ];
