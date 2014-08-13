@@ -242,7 +242,7 @@
             }
             uniq = val;
         });
-        console.log(uniq);
+
         if(uniq === undefined){
             return false;
         }
