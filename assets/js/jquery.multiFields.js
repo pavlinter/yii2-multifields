@@ -105,11 +105,12 @@
                         },settings.options);
 
                         var data    = $this.yiiActiveForm('data');
-                        var top     = $this.find('.'+data.settings.errorCssClass+':first').offset().top - settings.minusHeight;
-
-                        $(settings.body).animate({
-                            scrollTop: top
-                        },options);
+                        var $error = $this.find('.'+data.settings.errorCssClass+':first');
+                        if($error.length){
+                          $(settings.body).animate({
+                            scrollTop: $error.offset().top - settings.minusHeight
+                          },options);
+                        }
 
                     }).on('scrollToTop.mf',settings.form,function(e,settings){
 
