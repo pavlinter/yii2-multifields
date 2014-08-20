@@ -93,7 +93,7 @@ class MultiFields extends \yii\base\Widget
 
         $defClientOptions = [
             'confirmMessage' => Yii::t('yii', 'Are you sure you want to delete this item?'),
-            'deleteRouter' => Url::to([Yii::$app->controller->getUniqueId().'/delete']),
+            'deleteRouter' => Url::to(['delete']),
         ];
         $this->clientOptions = ArrayHelper::merge($defClientOptions,$this->clientOptions);
     }
