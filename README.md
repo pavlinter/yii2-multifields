@@ -24,57 +24,113 @@ Example
 ------------
 Controller
 ```
+
 use pavlinter\multifields\ModelHelper;
+use yii\web\Response;
 
 ...
 
-public function actionProduct()
+public function actionCreate()
 {
-
-    $models = Product::find()->indexBy('id')->all();
-    if (empty($models)) {
-        $models = [new Product];
-    }
+    $model = new Product();
+    $options = [new ProductOption(['scenario' => 'multiFields'])];
 
     if(Yii::$app->request->isPost) {
 
-        if (ModelHelper::load($models)) {
+        $loaded = $model->load(Yii::$app->request->post());
+        $loaded = ModelHelper::load($options) && $loaded;
 
-            if (ModelHelper::validate([$models])) {
+        if ($loaded) {
 
+            if (ModelHelper::validate([$model, $options])) {
+                $model->save(false);
                 $newId = [];
-                foreach ($models as $oldId => $model) {
-                    $model->save(false);
-                    ModelHelper::ajaxChangeField($newId,$model,'name',$oldId);
-                    ModelHelper::ajaxChangeField($newId,$model,'amount',$oldId);
+                foreach ($options as $oldId => $option) {
+                    $option->id_product = $model->id;
+                    $option->save(false);
+                    ModelHelper::ajaxChangeField($newId, $option, 'name', $oldId);
+                    ModelHelper::ajaxChangeField($newId, $option, 'value', $oldId);
                 }
                 if (Yii::$app->request->isAjax) {
                     Yii::$app->response->format = Response::FORMAT_JSON;
-                    return ['r' => 1 ,'newId' => $newId];
+                    return ['r' => 1, 'newId' => $newId];
                 } else {
-                    return $this->refresh();
+                    return $this->redirect(['index']);
                 }
-
             } else {
                 if (Yii::$app->request->isAjax) {
                     Yii::$app->response->format = Response::FORMAT_JSON;
-                    $errors = ModelHelper::ajaxErrors([$models]);
-                    return ['r' => 0,'errors' => $errors];
+                    $errors = ModelHelper::ajaxErrors([$model, $options]);
+                    return ['r' => 0, 'errors' => $errors];
                 }
             }
         }
     }
-    return $this->render('product',[
-        'models'=>$models,
+    return $this->render('create', [
+        'model' => $model,
+        'options' => $options,
     ]);
 }
-public function actionDelete()
+public function actionUpdate($id)
 {
-    if (Yii::$app->request->isPost) {
-        Product::deleteAll("id=:id",[':id'=>Yii::$app->request->post('id')]);
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return ['r'=>1];
+    $model = Product::findOne($id);
+    $options = ProductOption::find()->where(['id_product' => $id])->indexBy('id')->all();
+    if (empty($options)) {
+        $options[] = new ProductOption(['scenario' => 'multiFields']);
+    } else {
+        foreach ($options as $option) {
+            $option->scenario = 'multiFields';
+        }
     }
+
+    if(Yii::$app->request->isPost) {
+
+        $loaded = $model->load(Yii::$app->request->post());
+        $loaded = ModelHelper::load($options) && $loaded;
+
+        if ($loaded) {
+
+            if (ModelHelper::validate([$model, $options])) {
+                $model->save(false);
+                $newId = [];
+                foreach ($options as $oldId => $option) {
+                    $option->id_product = $model->id;
+                    $option->save(false);
+                    ModelHelper::ajaxChangeField($newId, $option, 'name', $oldId);
+                    ModelHelper::ajaxChangeField($newId, $option, 'value', $oldId);
+                }
+
+                if (Yii::$app->request->isAjax) {
+                    Yii::$app->response->format = Response::FORMAT_JSON;
+                    return ['r' =>1, 'newId' => $newId];
+                } else {
+                    return $this->redirect(['index']);
+                }
+            } else {
+                if (Yii::$app->request->isAjax) {
+                    Yii::$app->response->format = Response::FORMAT_JSON;
+                    $errors = ModelHelper::ajaxErrors([$model, $options]);
+                    return ['r' => 0, 'errors' => $errors];
+                }
+            }
+        }
+    }
+
+    return $this->render('update', [
+        'model' => $model,
+        'options' => $options,
+    ]);
+
+}
+public function actionDeleteOption()
+{
+    $id = Yii::$app->request->post('id');
+    $model = ProductOption::findOne($id);
+    if ($model !== null) {
+        $model->delete();
+    }
+    Yii::$app->response->format = Response::FORMAT_JSON;
+    return ['r' => 1];
 }
 ```
 
@@ -104,18 +160,24 @@ use pavlinter\multifields\MultiFields;
     }',
 ]); ?>
 
+<?= $form->errorSummary([$model,reset($options)],['class' => 'alert alert-danger']); ?>
+
+    <?= $form->field($model, 'name')->textInput(['maxlength' => 200]) ?>
+
+    <?= $form->field($model, 'amount')->textInput() ?>
+
     <?= MultiFields::widget([
-        'models' => $models,
+        'models' => $options,
         'form' => $form,
         'attributes' => [
+            'name',
             [
-                'attribute' => 'name',
+                'attribute' => 'value',
                 'options'=> [],
                 'field' => function ($activeField,$options,$parentClass,$closeButtonClass) {
-                        return $activeField->textArea($options);
+                    return $activeField->textArea($options);
                 },
             ],
-            'amount',
         ],
         //default
         'parentClassPrefix' => '-mf-row',
@@ -124,12 +186,12 @@ use pavlinter\multifields\MultiFields;
             'btn' => '.cloneBtn',
             'appendTo' => '',
             'confirmMessage' => Yii::t('yii' , 'Are you sure you want to delete this item?'),
-            'deleteRouter' => Url::to([Yii::$app->controller->getUniqueId().'/delete']),
+            'deleteRouter' => Url::to(['delete-option']), //Url::to(['delete'])
         ],
         'template' => function($parentClass,$closeButtonClass,$templateFields){ //default
             $closeBtn = Html::tag('a','&times;',['class'=>$closeButtonClass,'href'=>'javascript:void(0)']);
             return Html::tag('div',$closeBtn.$templateFields,['class'=>$parentClass]);
-        }
+        },
     ]);?>
 
     <?= Button::widget([
@@ -139,8 +201,7 @@ use pavlinter\multifields\MultiFields;
         ]
     ]);?>
 
-    <div class="form-group">
-        <?= Html::submitButton('Submit', ['class' => 'btn btn-primary pull-right', 'name' => 'contact-button']) ?>
-    </div>
+    <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
+
 <?php ActiveForm::end(); ?>
 ```

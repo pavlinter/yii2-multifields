@@ -93,7 +93,7 @@ class MultiFields extends \yii\base\Widget
 
         $defClientOptions = [
             'confirmMessage' => Yii::t('yii', 'Are you sure you want to delete this item?'),
-            'deleteRouter' => Url::to([Yii::$app->controller->getUniqueId().'/delete']),
+            'deleteRouter' => Url::to(['delete']),
         ];
         $this->clientOptions = ArrayHelper::merge($defClientOptions,$this->clientOptions);
     }
@@ -104,6 +104,7 @@ class MultiFields extends \yii\base\Widget
         $this->jsTemplate   = $this->getTemplate();
         $html = '';
         $createJsTemplate   = true;
+        $nameIndexs = [];
 
         foreach ($this->models as $id => $model)
         {
@@ -137,16 +138,23 @@ class MultiFields extends \yii\base\Widget
                     $activeField = $this->jsTemplateField($model,$settings);
                     $this->jsTemplate = str_replace('{'.$attribute.'}',$activeField,$this->jsTemplate);
                 }
-                if (isset($this->form->attributes[$nameIndex])) {
-                    $this->attributes[$i] = $this->form->attributes[$nameIndex];
-                    unset($this->form->attributes[$nameIndex]);
-                }
+                $nameIndexs[$i] = $nameIndex;
             }
             $html .= $temlate;
             if ($createJsTemplate) {
                 $createJsTemplate = false;
             }
         }
+
+        foreach ($nameIndexs as $i => $ni) {
+            foreach ($this->form->attributes as $j => $at) {
+                if($at['name'] === $ni) {
+                    $this->attributes[$i] = $at;
+                    unset($this->form->attributes[$j]);
+                }
+            }
+        }
+
         $this->registerAssets();
         return $html;
     }
