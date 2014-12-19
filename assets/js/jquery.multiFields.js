@@ -51,8 +51,43 @@
         afterAppend: function(clone){}
     };
 
+    var attributeDefaults = {
+        // a unique ID identifying an attribute (e.g. "loginform-username") in a form
+        id: undefined,
+        // attribute name or expression (e.g. "[0]content" for tabular input)
+        name: undefined,
+        // the jQuery selector of the container of the input field
+        container: undefined,
+        // the jQuery selector of the input field under the context of the container
+        input: undefined,
+        // the jQuery selector of the error tag under the context of the container
+        error: '.help-block',
+        // whether to encode the error
+        encodeError: true,
+        // whether to perform validation when a change is detected on the input
+        validateOnChange: true,
+        // whether to perform validation when the input loses focus
+        validateOnBlur: true,
+        // whether to perform validation when the user is typing.
+        validateOnType: false,
+        // number of milliseconds that the validation should be delayed when a user is typing in the input field.
+        validationDelay: 500,
+        // whether to enable AJAX-based validation.
+        enableAjaxValidation: false,
+        // function (attribute, value, messages), the client-side validation function.
+        validate: undefined,
+        // status of the input field, 0: empty, not entered before, 1: validated, 2: pending validation, 3: validating
+        status: 0,
+        // whether the validation is cancelled by beforeValidateAttribute event handler
+        cancelled: false,
+        // the value of the input
+        value: undefined
+    };
+
     var methods = {
         init: function (options) {
+
+
             return this.each(function () {
 
 
@@ -62,6 +97,8 @@
                 var $form = $(settings.form),
                     $btn  = $(this),
                     data = $form.data('mf');
+
+
 
                 if(!data){
                     $(document).on('updateErrors.mf',settings.form,function(e,errors){
@@ -155,8 +192,7 @@
                 // set click action
                 $btn.on('click.mf',function(e,ID){
                     ID = ID || uniqId--;
-
-
+                    
                     var counter = $(settings.parentClass).length;
                     // stop limit
                     if (settings.limit != 0 && counter >= settings.limit) {
@@ -164,15 +200,11 @@
                     }
 
                     var $form   = $(settings.form),
-                        formSettings = $form.yiiActiveForm('data'),
                         pattern = new RegExp(settings.index,'g'),
                         clone   = $(settings.template.replace(pattern,ID));
 
+
                     $('.'+settings.closeButtonClass,clone).on('click.mf',{settings:settings},deleteRow);
-
-
-
-
 
                     //Remove Elements with excludeSelector
                     if (settings.excludeSelector){
@@ -183,17 +215,6 @@
                         $(clone).find(settings.emptySelector).empty();
                     }
 
-
-                    $.each(settings.attributes,function(i,attribute){
-                        attribute = $.extend({},attribute);//copy object
-                        attribute.container = attribute.container.replace(pattern,ID);
-                        attribute.error     = attribute.error.replace(pattern,ID);
-                        attribute.input     = attribute.input.replace(pattern,ID);
-                        attribute.id        = attribute.id.replace(pattern,ID);
-                        attribute.name      = attribute.name.replace(pattern,ID);
-
-                        formSettings.attributes[attribute.name] = attribute;
-                    });
 
                     if(settings.appendTo){
                         $(settings.appendTo).append(clone);
@@ -208,10 +229,19 @@
                         .removeAttr('checked')
                         .removeAttr('selected');
 
-                    settings.afterAppend(clone);
-                    saveFormSettings(settings.form,formSettings);
-                    return false;
 
+                    $.each(settings.attributes,function(i,attribute){
+
+                        attribute = $.extend(attributeDefaults,attribute);//copy object
+                        attribute.container = attribute.container.replace(pattern,ID);
+                        attribute.error     = attribute.error.replace(pattern,ID);
+                        attribute.input     = attribute.input.replace(pattern,ID);
+                        attribute.id        = attribute.id.replace(pattern,ID);
+                        attribute.name      = attribute.name.replace(pattern,ID);
+                        $form.yiiActiveForm('add',attribute);
+                    });
+                    settings.afterAppend(clone);
+                    return false;
                 }); // end click action
 
             });
@@ -231,30 +261,18 @@
             $form = $(settings.form),
             $row = $(this).closest('.'+settings.parentClass),
             $inputs =  $row.find(':input'),
-            uniq = undefined,
-            result = undefined,
-            val = undefined;
+            uniq = $row.attr('data-mf-uniq'),
+            result = undefined;
 
-        $inputs.each(function(){
-            val = $(this).attr('data-mf-uniq');
-            if(val >= 0){
-                uniq = val;
-                return false;
-            }
-            uniq = val;
-        });
-
-        if(uniq === undefined){
-            return false;
-        }
-
-        if($('.'+settings.parentClass).size() <= settings.requiredRows){
+        if(!uniq || $('.'+settings.parentClass).size() <= settings.requiredRows){
             return false;
         }
 
         if(uniq < 0){
+            for (var m in $inputs) {
+                $form.yiiActiveForm('remove', $inputs[m].id);
+            }
             $row.remove();
-            deleteValidation(settings,$inputs);
             return false;
         }
         result = settings.confirmCallback(settings.confirmMessage);
@@ -298,33 +316,6 @@
             settings.confirmCancelCallback($row, $form);
         }
 
-    };
-
-    /**
-     * Performs destruction event fields
-     * @param object settings
-     * @param object $inputs
-     */
-    var deleteValidation = function(settings,inputs) {
-        var inputIds = {},
-            formSettings = $(settings.form).yiiActiveForm('data');
-        $.each(inputs,function(){
-            inputIds[$(this).attr('id')] = true;
-        });
-        $.each(formSettings.attributes,function(key,value) {
-            if(inputIds[this.id]) {
-                delete formSettings.attributes[key];
-            }
-        });
-        saveFormSettings(settings.form,formSettings);
-    };
-    /**
-     * Set new settings form
-     * @param string form selector
-     * @param object new settings form
-     */
-    var saveFormSettings = function(form,formSettings) {
-        $(form).yiiActiveForm('destroy').yiiActiveForm(formSettings.attributes,formSettings.settings);
     };
     /**
      * Show message in console

@@ -12,7 +12,6 @@ use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\base\InvalidConfigException;
-use yii\web\JsExpression;
 use yii\helpers\Json;
 use yii\helpers\Url;
 
@@ -70,9 +69,9 @@ class MultiFields extends \yii\base\Widget
         $this->models = $Models;
 
         if ($this->template === null) {
-            $this->template = function($parentClass,$closeButtonClass,$templateFields) {
+            $this->template = function($parentOptions,$closeButtonClass,$templateFields) {
                 $closeBtn = Html::tag('a', '&times;',['class' => $closeButtonClass,'href' => 'javascript:void(0)']);
-                return Html::tag('div', $closeBtn.$templateFields, ['class' => $parentClass]);
+                return Html::tag('div', $closeBtn.$templateFields, $parentOptions);
             };
         }
 
@@ -101,14 +100,14 @@ class MultiFields extends \yii\base\Widget
     {
         $attributes         = $this->attributes;
         $this->attributes   = [];
-        $this->jsTemplate   = $this->getTemplate();
+        $this->jsTemplate   = $this->getTemplate($this->index);
         $html = '';
         $createJsTemplate   = true;
         $nameIndexs = [];
 
         foreach ($this->models as $id => $model)
         {
-            $temlate   = $this->getTemplate();
+            $temlate   = $this->getTemplate($id);
             foreach($attributes as $i => $settings)
             {
                 if (!$model->hasAttribute($settings['attribute'])) {
@@ -154,6 +153,7 @@ class MultiFields extends \yii\base\Widget
                 }
             }
         }
+        $this->form->attributes = array_values($this->form->attributes);
 
         $this->registerAssets();
         return $html;
@@ -165,7 +165,7 @@ class MultiFields extends \yii\base\Widget
     {
         $closeButtonClass = explode(' ', trim($this->closeButtonClass))[0];
 
-        $clientOptions = ArrayHelper::merge(array(
+        $clientOptions = ArrayHelper::merge([
             'btn' => '.cloneBtn',
             'uniqId' => (--$this->uniqId),
             'parentClass' => $this->parentClass,
@@ -176,7 +176,7 @@ class MultiFields extends \yii\base\Widget
             'form' => '#'.$this->form->id,
             'closeButtonClass' => $closeButtonClass,
             'requiredRows' => 1,
-        ),$this->clientOptions);
+        ],$this->clientOptions);
         $btn = ArrayHelper::remove($clientOptions,'btn');
         $clientOptions = Json::encode($clientOptions);
 
@@ -189,18 +189,18 @@ class MultiFields extends \yii\base\Widget
     {
         $settings['options']['data-mf-uniq'] = $settings['uniqId'];
         $activeField = $this->form->field($model, $settings['attribute']);
-        return call_user_func($settings['field'], $activeField, $settings['options'], $this->parentClass, $this->closeButtonClass);
+        return call_user_func($settings['field'], $activeField, $settings['options'], ['class' => $this->parentClass,'data-mf-uniq' => $settings['uniqId']], $this->closeButtonClass);
     }
     public function jsTemplateField($model,$settings)
     {
         $settings['options']['data-mf-uniq'] = $this->index;
         $activeField = $this->form->field($model, $settings['attributeIndex']);
-        return call_user_func($settings['field'], $activeField, $settings['options'], $this->parentClass, $this->closeButtonClass);
+        return call_user_func($settings['field'], $activeField, $settings['options'], ['class' => $this->parentClass,'data-mf-uniq' => $settings['uniqId']], $this->closeButtonClass);
     }
-    public function getTemplate()
+    public function getTemplate($uniq)
     {
         if (is_callable($this->template)) {
-            return call_user_func($this->template, $this->parentClass, $this->closeButtonClass, $this->templateFields);
+            return call_user_func($this->template, ['class' => $this->parentClass,'data-mf-uniq' => $uniq], $this->closeButtonClass, $this->templateFields);
         }
         throw new InvalidConfigException('Template must be function!');
     }
