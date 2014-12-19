@@ -104,7 +104,6 @@
                     $(document).on('updateErrors.mf',settings.form,function(e,errors){
 
                         if (!errors || errors.length == 0) {
-                            log('Error empty!');
                             return false;
                         }
                         var data  = $(this).yiiActiveForm('data');
@@ -115,6 +114,7 @@
                                     .addClass(data.settings.errorCssClass);
                             }
                         });
+                        return true;
                     }).on('updateRows.mf',settings.form,function(e,o){
                         var i,field,inp,cont;
                         for (i in o) {
@@ -129,6 +129,7 @@
                             }).removeClass(settings.inputFlyClass).addClass(settings.inputSavedClass);
                             cont.addClass(settings.parentSavedClass).removeClass(settings.parentFlyClass);
                         }
+
                     }).on('scrollToError.mf',settings.form,function(e,options){
 
                         var $this   = $(this);
@@ -233,7 +234,6 @@
                         .removeAttr('checked')
                         .removeAttr('selected');
 
-
                     $.each(settings.attributes,function(i,attribute){
                         attribute = $.extend(attributeDefaults,attribute);//copy object
                         attribute.container = attribute.container.replace(pattern,ID);
@@ -241,6 +241,7 @@
                         attribute.input     = attribute.input.replace(pattern,ID);
                         attribute.id        = attribute.id.replace(pattern,ID);
                         attribute.name      = attribute.name.replace(pattern,ID);
+
                         $form.yiiActiveForm('add', attribute);
                     });
                     $this.trigger('afterAppend.mf', [clone, settings]);
@@ -282,9 +283,9 @@
         }
 
         if(uniq < 0){
-            for (var m in $inputs) {
-                $form.yiiActiveForm('remove', $inputs[m].id);
-            }
+            $inputs.each(function(){
+                $form.yiiActiveForm('remove', $(this).attr("id"));
+            })
             $row.remove();
             $this.trigger("afterRemove.mf", [$row, settings]);
             return false;
@@ -329,17 +330,5 @@
         }
 
     };
-    /**
-     * Show message in console
-     * @param string msg
-     */
-    var log = function (msg) {
-        if (typeof console === "undefined" || typeof console.log === "undefined") {
-            alert(msg);
-        }else{
-            console.log(msg);
-        }
-    };
-
 })(jQuery);
 

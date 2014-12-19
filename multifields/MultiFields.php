@@ -29,11 +29,8 @@ class MultiFields extends \yii\base\Widget
      */
     public $index = 'index';
     public $parentClassPrefix = '-mf-row';
-    /**
-     * example: function($parentClass){
-     *      '<div class="'.$parentClass.'">{modelName_attribute},{modelName_attribute}</div>';
-     * }
-     */
+
+    public $templateFields;
     public $template = null;
     public $closeButtonClass = 'mf-btn-close pull-right';
     public $clientOptions   = [];
@@ -41,14 +38,17 @@ class MultiFields extends \yii\base\Widget
     private $parentClass = null;
     private $uniqId = 0;
     private $jsTemplate;
-    private $templateFields = '';
 
     public function init()
     {
         parent::init();
 
         if ($this->models === []) {
-            throw new InvalidConfigException('Empty model array');
+            throw new InvalidConfigException('The "models" property is empty.');
+        }
+
+        if ($this->attributes === []) {
+            throw new InvalidConfigException('The "attributes" property must be set.');
         }
 
         $Models = [];
@@ -74,6 +74,7 @@ class MultiFields extends \yii\base\Widget
         }
 
         $this->parentClass = $modelName . $this->parentClassPrefix;
+        $templateFields = '';
 
         foreach ($this->attributes as $i => $settings) {
             if (!is_array($settings)) {
@@ -84,15 +85,19 @@ class MultiFields extends \yii\base\Widget
                 'options'=> [],
                 'field' => null,
             ],$settings);
-            $this->templateFields .= '{' . $settings['attribute'] . '}';
+
+            $templateFields .= '{' . $settings['attribute'] . '}';
             $this->attributes[$i] = $settings;
+        }
+        if ($this->templateFields === null) {
+            $this->templateFields = $templateFields;
         }
 
         $defClientOptions = [
             'confirmMessage' => Yii::t('yii', 'Are you sure you want to delete this item?'),
             'deleteRouter' => Url::to(['delete']),
         ];
-        $this->clientOptions = ArrayHelper::merge($defClientOptions,$this->clientOptions);
+        $this->clientOptions = ArrayHelper::merge($defClientOptions, $this->clientOptions);
     }
 
     /**
@@ -116,16 +121,15 @@ class MultiFields extends \yii\base\Widget
                 if (!$model->hasAttribute($settings['attribute'])) {
                     continue;
                 }
+
                 $attribute      = $settings['attribute'];
                 $name           = '[' . $id . ']' . $attribute;
                 $nameIndex      = '[' . $this->index . ']' . $attribute;
-
 
                 $settings['attribute']       = $name;
                 $settings['attributeIndex']  = $nameIndex;
                 $settings['uniqId']          = $id;
                 $settings['idTpl']           = Html::getInputId($model,$nameIndex);
-
 
                 if (!is_callable($settings['field'])) {
                     $settings['field'] = function($activeField,$options,$parentClass,$closeButtonClass){
@@ -133,8 +137,8 @@ class MultiFields extends \yii\base\Widget
                     };
                 }
 
-                $field = $this->field($model,$settings);
-                $temlate = str_replace('{' . $attribute . '}',$field, $temlate);
+                $field = $this->field($model, $settings);
+                $temlate = str_replace('{' . $attribute . '}', $field, $temlate);
 
                 if ($createJsTemplate) {
                     $activeField = $this->jsTemplateField($model, $settings);
@@ -148,6 +152,9 @@ class MultiFields extends \yii\base\Widget
             }
         }
 
+
+
+
         foreach ($nameIndexs as $i => $ni) {
             foreach ($this->form->attributes as $j => $at) {
                 if($at['name'] === $ni) {
@@ -156,6 +163,11 @@ class MultiFields extends \yii\base\Widget
                 }
             }
         }
+
+        if (count($this->attributes) !== count($attributes)) {
+            throw new InvalidConfigException('The field rules or scenario must be set.');
+        }
+
         $this->form->attributes = array_values($this->form->attributes);
 
         $this->registerAssets();
