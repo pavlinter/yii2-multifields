@@ -16,9 +16,7 @@ use yii\helpers\Json;
 use yii\helpers\Url;
 
 /**
- *
- * @author Pavels Radajevs <pavlinter@gmail.com>
- * @since 1.0
+ * Class MultiFields
  */
 class MultiFields extends \yii\base\Widget
 {
@@ -69,9 +67,9 @@ class MultiFields extends \yii\base\Widget
         $this->models = $Models;
 
         if ($this->template === null) {
-            $this->template = function($parentOptions,$closeButtonClass,$templateFields) {
-                $closeBtn = Html::tag('a', '&times;',['class' => $closeButtonClass,'href' => 'javascript:void(0)']);
-                return Html::tag('div', $closeBtn.$templateFields, $parentOptions);
+            $this->template = function($parentOptions, $closeButtonClass, $templateFields) {
+                $closeBtn = Html::tag('a', '&times;', ['class' => $closeButtonClass, 'href' => 'javascript:void(0);']);
+                return Html::tag('div', $closeBtn . $templateFields, $parentOptions);
             };
         }
 
@@ -86,7 +84,7 @@ class MultiFields extends \yii\base\Widget
                 'options'=> [],
                 'field' => null,
             ],$settings);
-            $this->templateFields .= '{'.$settings['attribute'].'}';
+            $this->templateFields .= '{' . $settings['attribute'] . '}';
             $this->attributes[$i] = $settings;
         }
 
@@ -96,6 +94,11 @@ class MultiFields extends \yii\base\Widget
         ];
         $this->clientOptions = ArrayHelper::merge($defClientOptions,$this->clientOptions);
     }
+
+    /**
+     * Executes the widget.
+     * @return string the result of widget execution to be outputted.
+     */
     public function run()
     {
         $attributes         = $this->attributes;
@@ -114,8 +117,8 @@ class MultiFields extends \yii\base\Widget
                     continue;
                 }
                 $attribute      = $settings['attribute'];
-                $name           = '['.$id.']'.$attribute;
-                $nameIndex      = '['.$this->index.']'.$attribute;
+                $name           = '[' . $id . ']' . $attribute;
+                $nameIndex      = '[' . $this->index . ']' . $attribute;
 
 
                 $settings['attribute']       = $name;
@@ -131,11 +134,11 @@ class MultiFields extends \yii\base\Widget
                 }
 
                 $field = $this->field($model,$settings);
-                $temlate = str_replace('{'.$attribute.'}',$field,$temlate);
+                $temlate = str_replace('{' . $attribute . '}',$field, $temlate);
 
                 if ($createJsTemplate) {
-                    $activeField = $this->jsTemplateField($model,$settings);
-                    $this->jsTemplate = str_replace('{'.$attribute.'}',$activeField,$this->jsTemplate);
+                    $activeField = $this->jsTemplateField($model, $settings);
+                    $this->jsTemplate = str_replace('{' . $attribute . '}', $activeField, $this->jsTemplate);
                 }
                 $nameIndexs[$i] = $nameIndex;
             }
@@ -173,7 +176,7 @@ class MultiFields extends \yii\base\Widget
             'appendTo' => '',
             'index' => $this->index,
             'template' => $this->jsTemplate,
-            'form' => '#'.$this->form->id,
+            'form' => '#' . $this->form->id,
             'closeButtonClass' => $closeButtonClass,
             'requiredRows' => 1,
         ],$this->clientOptions);
@@ -185,18 +188,36 @@ class MultiFields extends \yii\base\Widget
         MultiFieldsAsset::register($view);
         $view->registerJs("jQuery('" . $btn . "').multiFields(" . $clientOptions . ");",$view::POS_LOAD);
     }
+
+    /**
+     * @param $model
+     * @param $settings
+     * @return mixed
+     */
     public function field($model,$settings)
     {
         $settings['options']['data-mf-uniq'] = $settings['uniqId'];
         $activeField = $this->form->field($model, $settings['attribute']);
         return call_user_func($settings['field'], $activeField, $settings['options'], ['class' => $this->parentClass,'data-mf-uniq' => $settings['uniqId']], $this->closeButtonClass);
     }
+
+    /**
+     * @param $model
+     * @param $settings
+     * @return mixed
+     */
     public function jsTemplateField($model,$settings)
     {
         $settings['options']['data-mf-uniq'] = $this->index;
         $activeField = $this->form->field($model, $settings['attributeIndex']);
         return call_user_func($settings['field'], $activeField, $settings['options'], ['class' => $this->parentClass,'data-mf-uniq' => $settings['uniqId']], $this->closeButtonClass);
     }
+
+    /**
+     * @param $uniq
+     * @return mixed
+     * @throws InvalidConfigException
+     */
     public function getTemplate($uniq)
     {
         if (is_callable($this->template)) {

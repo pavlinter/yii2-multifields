@@ -9,13 +9,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist pavlinter/yii2-multifields "dev-master"
+php composer.phar require --prefer-dist pavlinter/yii2-multifields "*"
 ```
 
 or add
 
 ```
-"pavlinter/yii2-multifields": "dev-master"
+"pavlinter/yii2-multifields": "*"
 ```
 
 to the require section of your `composer.json` file.
@@ -142,17 +142,18 @@ use pavlinter\multifields\MultiFields;
 
 <?php $form = ActiveForm::begin([
     'id' => 'product-form',
-    'beforeSubmit' => 'function(form) {
+    'beforeSubmit' => 'function() {
+        var $form = $(this);
         jQuery.ajax({
-            url: form.attr("action"),
+            url: $form.attr("action"),
             type: "POST",
             dataType: "json",
-            data: form.serialize(),
+            data: $form.serialize(),
             success: function(d) {
                 if(d.r) {
-                    form.trigger("updateRows",[d.newId]).trigger("scrollToTop");
+                    $form.trigger("updateRows",[d.newId]).trigger("scrollToTop");
                 } else {
-                    form.trigger("updateErrors",[d.errors]).trigger("scrollToError");
+                    $form.trigger("updateErrors",[d.errors]).trigger("scrollToError");
                 }
             },
         });
@@ -174,7 +175,7 @@ use pavlinter\multifields\MultiFields;
             [
                 'attribute' => 'value',
                 'options'=> [],
-                'field' => function ($activeField,$options,$parentClass,$closeButtonClass) {
+                'field' => function ($activeField, $options, $parentClass, $closeButtonClass) {
                     return $activeField->textArea($options);
                 },
             ],
@@ -188,16 +189,16 @@ use pavlinter\multifields\MultiFields;
             'confirmMessage' => Yii::t('yii' , 'Are you sure you want to delete this item?'),
             'deleteRouter' => Url::to(['delete-option']), //Url::to(['delete'])
         ],
-        'template' => function($parentClass,$closeButtonClass,$templateFields){ //default
-            $closeBtn = Html::tag('a','&times;',['class'=>$closeButtonClass,'href'=>'javascript:void(0)']);
-            return Html::tag('div',$closeBtn.$templateFields,['class'=>$parentClass]);
+        'template' => function($parentOptions, $closeButtonClass, $templateFields){ //default
+            $closeBtn = Html::tag('a', '&times;', ['class' => $closeButtonClass, 'href' => 'javascript:void(0)']);
+            return Html::tag('div', $closeBtn . $templateFields, $parentOptions);
         },
     ]);?>
 
     <?= Button::widget([
-        'label'=>'Add Product',
-        'options'=>[
-            'class'=>'cloneBtn'
+        'label' => 'Add Product',
+        'options' => [
+            'class' => 'cloneBtn'
         ]
     ]);?>
 

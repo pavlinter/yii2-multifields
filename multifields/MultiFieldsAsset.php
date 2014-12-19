@@ -1,17 +1,15 @@
 <?php
 
-namespace pavlinter\multifields;
 /**
  * @copyright Copyright &copy; Pavels Radajevs, 2014
  * @package yii2-multifields
  * @version 1.0.0
  */
 
+namespace pavlinter\multifields;
+
 /**
  * Asset bundle for MultiFields Widget
- *
- * @author Pavels Radajevs <pavlinter@gmail.com>
- * @since 1.0
  */
 class MultiFieldsAsset extends \yii\web\AssetBundle
 {

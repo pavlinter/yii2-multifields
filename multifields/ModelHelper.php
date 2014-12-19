@@ -1,23 +1,27 @@
 <?php
 
-namespace pavlinter\multifields;
 /**
  * @copyright Copyright &copy; Pavels Radajevs, 2014
  * @package yii2-multifields
  * @version 1.0.0
  */
 
+namespace pavlinter\multifields;
+
 use Yii;
 use yii\helpers\Html;
 
 /**
  * Helpers for MultiFields Widget
- *
- * @author Pavels Radajevs <pavlinter@gmail.com>
- * @since 1.0
  */
 class ModelHelper
 {
+    /**
+     * @param $models
+     * @param null $scenario
+     * @param bool $existModels
+     * @return bool
+     */
     public static function load(&$models,$scenario = null,$existModels = true)
     {
         $res = false;
@@ -58,6 +62,13 @@ class ModelHelper
         }
         return $res;
     }
+
+    /**
+     * @param $models
+     * @param null $attributeNames
+     * @param bool $clearErrors
+     * @return bool
+     */
     public static function validate($models, $attributeNames = null, $clearErrors = true)
     {
         $valid = true;
@@ -74,6 +85,11 @@ class ModelHelper
         return $valid;
 
     }
+
+    /**
+     * @param $models
+     * @return array
+     */
     public static function ajaxErrors($models)
     {
         if (!is_array($models)) {
@@ -95,6 +111,15 @@ class ModelHelper
         }
         return $result;
     }
+
+    /**
+     * @param $arr
+     * @param $model
+     * @param $attribute
+     * @param $key
+     * @param null $id
+     * @return bool
+     */
     public static function ajaxChangeField(&$arr,$model,$attribute,$key,$id = null)
     {
         if ($id === null) {
