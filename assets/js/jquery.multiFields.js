@@ -121,13 +121,13 @@
 
                             field = o[i];
                             inp = $('#' + field.id);
-                            cont = inp.closest('.' + settings.parentClass);
+                            cont = inp.closest('.' + settings.parentClass).attr('data-mf-uniq', field.uniq);
 
                             inp.attr({
                                 'data-mf-uniq':field.uniq,
                                 'name':field.newName
                             }).removeClass(settings.inputFlyClass).addClass(settings.inputSavedClass);
-                            cont.addClass(settings.parentSavedClass);
+                            cont.addClass(settings.parentSavedClass).removeClass(settings.parentFlyClass);
                         }
                     }).on('scrollToError.mf',settings.form,function(e,options){
 
@@ -180,7 +180,7 @@
                 $('.'+settings.parentClass+' .'+settings.closeButtonClass).on('click.mf',{settings:settings},deleteRow);
                 $('.'+settings.parentClass+' :input').each(function(){
                     var el = $(this);
-                    if(el.attr('data-mf-uniq')<0){
+                    if(el.attr('data-mf-uniq') < 0){
                         el.addClass(settings.inputFlyClass);
                         el.closest('.'+settings.parentClass).addClass(settings.parentFlyClass);
                     }else{
@@ -199,9 +199,10 @@
                         return false;
                     }
 
-                    var $form   = $(settings.form),
+                    var $this   = $(this);
+                        $form   = $(settings.form),
                         pattern = new RegExp(settings.index,'g'),
-                        clone   = $(settings.template.replace(pattern,ID));
+                        clone   = $(settings.template.replace(pattern,ID)).addClass(settings.parentFlyClass);
 
 
                     $('.'+settings.closeButtonClass,clone).on('click.mf',{settings:settings},deleteRow);
@@ -215,11 +216,14 @@
                         $(clone).find(settings.emptySelector).empty();
                     }
 
-
-                    if(settings.appendTo){
-                        $(settings.appendTo).append(clone);
-                    }else{
-                        $('.'+settings.parentClass+':last').after(clone);
+                    var event = $.Event("beforeAppend.mf");
+                    $this.trigger(event, [clone, settings]);
+                    if(event.result !== false) {
+                        if (settings.appendTo) {
+                            $(settings.appendTo).append(clone);
+                        } else {
+                            $('.' + settings.parentClass + ':last').after(clone);
+                        }
                     }
 
                     //clear input
@@ -231,16 +235,15 @@
 
 
                     $.each(settings.attributes,function(i,attribute){
-
                         attribute = $.extend(attributeDefaults,attribute);//copy object
                         attribute.container = attribute.container.replace(pattern,ID);
                         attribute.error     = attribute.error.replace(pattern,ID);
                         attribute.input     = attribute.input.replace(pattern,ID);
                         attribute.id        = attribute.id.replace(pattern,ID);
                         attribute.name      = attribute.name.replace(pattern,ID);
-                        $form.yiiActiveForm('add',attribute);
+                        $form.yiiActiveForm('add', attribute);
                     });
-                    settings.afterAppend(clone);
+                    $this.trigger('afterAppend.mf', [clone, settings]);
                     return false;
                 }); // end click action
 
@@ -257,15 +260,25 @@
      * Performs deleting row
      */
     var deleteRow = function(e) {
-        var settings = e.data.settings,
-            $form = $(settings.form),
-            $row = $(this).closest('.'+settings.parentClass),
-            $inputs =  $row.find(':input'),
-            uniq = $row.attr('data-mf-uniq'),
-            result = undefined;
+        var $this       = $(this),
+            settings    = e.data.settings,
+            $form       = $(settings.form),
+            $row        = $this.closest('.'+settings.parentClass),
+            $inputs     = $row.find(':input'),
+            uniq        = $row.attr('data-mf-uniq'),
+            result      = undefined;
 
-        if(!uniq || $('.'+settings.parentClass).size() <= settings.requiredRows){
+        if(!uniq){
             return false;
+        }
+        if($row.is('.' + settings.parentSavedClass)){
+            if($('.' + settings.parentSavedClass).size() <= settings.requiredRows){
+                return false;
+            }
+        } else {
+            if($('.' + settings.parentClass).size() <= settings.requiredRows){
+                return false;
+            }
         }
 
         if(uniq < 0){
@@ -273,6 +286,7 @@
                 $form.yiiActiveForm('remove', $inputs[m].id);
             }
             $row.remove();
+            $this.trigger("afterRemove.mf", [$row, settings]);
             return false;
         }
         result = settings.confirmCallback(settings.confirmMessage);
@@ -293,25 +307,23 @@
             extData[settings.postName] = uniq;
             data = $form.serialize() + '&' + $.param(extData);
 
-            jQuery.ajax({
+            $.ajax({
                 url: settings.deleteRouter,
-                type: 'POST',
-                data: data,
+                type: "POST",
                 dataType: settings.dataType,
+                data: data,
                 beforeSend: function () {
                     settings.beforeSendDelete($row, $form);
-                },
-                success: function (d) {
-                    settings.deleteCallback(d, $row, $form);
-                },
-                complete: function () {
-                    settings.completeDelete($row, $form);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    parent.show();
-                    alert(errorThrown.toString());
                 }
+            }).done(function (d) {
+                settings.deleteCallback(d, $row, $form);
+            }).always(function (jqXHR, textStatus) {
+                settings.completeDelete($row, $form, textStatus);
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                parent.show();
+                alert(errorThrown.toString());
             });
+
         } else {
             settings.confirmCancelCallback($row, $form);
         }
@@ -328,7 +340,6 @@
             console.log(msg);
         }
     };
-
 
 })(jQuery);
 
