@@ -321,7 +321,7 @@
             }).always(function (jqXHR, textStatus) {
                 settings.completeDelete($row, $form, textStatus);
             }).fail(function (jqXHR, textStatus, errorThrown) {
-                parent.show();
+                $row.show();
                 alert(errorThrown.toString());
             });
 
