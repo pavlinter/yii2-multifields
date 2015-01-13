@@ -98,8 +98,7 @@
                     $btn  = $(this),
                     data = $form.data('mf');
 
-
-
+                //data-mf-uniq
                 if(!data){
                     $(document).on('updateErrors.mf',settings.form,function(e,errors){
 
@@ -193,7 +192,7 @@
                 // set click action
                 $btn.on('click.mf',function(e,ID){
                     ID = ID || uniqId--;
-                    
+
                     var counter = $(settings.parentClass).length;
                     // stop limit
                     if (settings.limit != 0 && counter >= settings.limit) {
@@ -223,7 +222,11 @@
                         if (settings.appendTo) {
                             $(settings.appendTo).append(clone);
                         } else {
-                            $('.' + settings.parentClass + ':last').after(clone);
+                            var $last = $('.' + settings.parentClass + ':last');
+                            if(!$last.length){
+                                alert('The "appendTo" property must be set.');
+                            }
+                            $last.after(clone);
                         }
                     }
 
@@ -247,6 +250,23 @@
                     $this.trigger('afterAppend.mf', [clone, settings]);
                     return false;
                 }); // end click action
+
+
+                var $rows = $('.' + settings.parentClass);
+
+                if(settings.requiredRows < 1) {
+                    $rows.filter("." + settings.parentFlyClass).each(function(){
+                        $(this).find("." + settings.inputFlyClass).each(function(){
+                            $form.yiiActiveForm('remove', $(this).attr("id"));
+                        });
+                    }).remove();
+                } else if (settings.requiredRows > $rows.length) {
+                    var count =  settings.requiredRows - $rows.length;
+                    for (var i = 0; i < count; i++) {
+                        $btn.trigger('click.mf');
+                    }
+                }
+
 
             });
         },

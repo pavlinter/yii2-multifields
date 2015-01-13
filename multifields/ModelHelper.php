@@ -22,7 +22,7 @@ class ModelHelper
      * @param bool $existModels
      * @return bool
      */
-    public static function load(&$models,$scenario = null,$existModels = true)
+    public static function load(&$models, $scenario = null, $existModels = true)
     {
         $res = false;
         if (empty($models)) {
