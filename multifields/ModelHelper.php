@@ -77,7 +77,7 @@ class ModelHelper
         }
         foreach ($models as $model) {
             if (is_array($model)) {
-                $valid = self::validate($model, $attributeNames, $clearErrors) && $valid;
+                $valid = static::validate($model, $attributeNames, $clearErrors) && $valid;
             } else {
                 $valid = $model->validate($attributeNames, $clearErrors) && $valid;
             }
