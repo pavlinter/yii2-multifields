@@ -302,10 +302,10 @@
             }
         }
 
+        $inputs.each(function(){
+            $form.yiiActiveForm('remove', $(this).attr("id"));
+        });
         if(uniq < 0){
-            $inputs.each(function(){
-                $form.yiiActiveForm('remove', $(this).attr("id"));
-            })
             $row.remove();
             $this.trigger("afterRemove.mf", [$row, settings]);
             return false;
