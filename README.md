@@ -102,7 +102,7 @@ public function actionUpdate($id)
 
                 if (Yii::$app->request->isAjax) {
                     Yii::$app->response->format = Response::FORMAT_JSON;
-                    return ['r' =>1, 'newId' => $newId];
+                    return ['r' => 1, 'newId' => $newId];
                 } else {
                     return $this->redirect(['index']);
                 }
@@ -139,29 +139,30 @@ View
 use pavlinter\multifields\MultiFields;
 
 ...
-
-<?php $form = ActiveForm::begin([
-    'id' => 'product-form',
-    'beforeSubmit' => 'function() {
+<?php
+$this->registerJs('
+    $("#product-form").on("beforeSubmit",function(e){
         var $form = $(this);
-        jQuery.ajax({
+        $.ajax({
             url: $form.attr("action"),
             type: "POST",
             dataType: "json",
             data: $form.serialize(),
-            success: function(d) {
-                if(d.r) {
-                    $form.trigger("updateRows",[d.newId]).trigger("scrollToTop");
-                } else {
-                    $form.trigger("updateErrors",[d.errors]).trigger("scrollToError");
-                }
-            },
+        }).done(function(d){
+            if(d.r) {
+                $form.trigger("updateRows",[d.newId]).trigger("scrollToTop");
+            } else {
+                $form.trigger("updateErrors",[d.errors]).trigger("scrollToError");
+            }
         });
         return false;
-    }',
-]); ?>
+    });
+');
+?>
 
-<?= $form->errorSummary([$model,reset($options)],['class' => 'alert alert-danger']); ?>
+<?php $form = ActiveForm::begin(['id' => 'product-form']); ?>
+
+    <?= $form->errorSummary([$model,reset($options)],['class' => 'alert alert-danger']); ?>
 
     <?= $form->field($model, 'name')->textInput(['maxlength' => 200]) ?>
 
@@ -195,7 +196,7 @@ use pavlinter\multifields\MultiFields;
         },
     ]);?>
 
-    <?= Button::widget([
+    <?= \yii\bootstrap\Button::widget([
         'label' => 'Add Product',
         'options' => [
             'class' => 'cloneBtn'
