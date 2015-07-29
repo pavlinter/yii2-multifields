@@ -37,8 +37,10 @@
             $row.hide();
         },
         deleteCallback: function(data,$row,$form){
+            var settings = this;
             if(data.r){
                 $row.remove();
+                $form.trigger("removedRow.mf", [settings, true]); //true == deleted from database
             }else{
                 $row.show();
             }
@@ -311,8 +313,9 @@
             $form.yiiActiveForm('remove', $(this).attr("id"));
         });
         if(uniq < 0){
-            $row.remove();
             $this.trigger("afterRemove.mf", [$row, settings]);
+            $row.remove();
+            $form.trigger("removedRow.mf", [settings, false]); //true == deleted from database
             return false;
         }
         result = settings.confirmCallback(settings.confirmMessage);
