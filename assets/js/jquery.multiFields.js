@@ -1,7 +1,7 @@
 /**
  * @copyright Copyright &copy; Pavels Radajevs, 2014
  * @package yii2-multifields
- * @version 1.0.1
+ * @version 1.0.2
  */
 (function($) {
 
